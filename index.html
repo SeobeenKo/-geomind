@@ -110,12 +110,17 @@
 
         .map-error { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 30px; text-align: center; color: #475569; font-size: 0.9rem; line-height: 1.7; z-index: 5; }
 
+        #kakao-map { position: relative; z-index: 1; }
         .legend {
-            position: absolute; bottom: 20px; right: 20px; background: rgba(255, 255, 255, 0.95);
-            padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); z-index: 100; font-size: 0.78rem;
+            position: absolute; bottom: 20px; right: 20px; background: rgba(255, 255, 255, 0.97);
+            padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000; font-size: 0.78rem;
+            border: 1px solid #cfd8dc;
         }
+        .legend-head { font-weight: 700; display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+        .legend-body { margin-top: 6px; }
+        .legend.collapsed .legend-body { display: none; }
         .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-        .legend-color { width: 14px; height: 14px; border-radius: 3px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
 
         /* 모바일: 지도 위, 패널 아래 */
         @media (max-width: 768px) {
@@ -253,12 +258,18 @@
     <div id="map-area">
         <div id="kakao-map"></div>
         <div class="map-error" id="map-error"></div>
-        <div class="legend">
-            <div style="font-weight: 700; margin-bottom: 6px;">공간 심리 쾌적도 범례</div>
-            <div class="legend-item"><div class="legend-color" style="background: #4a7c59;"></div><span>추천 경로</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: #9e9e9e;"></div><span>다른 후보 경로</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: rgba(67,160,71,0.4); border: 1px solid #43a047;"></div><span>녹지·공원 구간</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: rgba(229,57,53,0.4); border: 1px solid #e53935;"></div><span>혼잡·소음 주의 구간</span></div>
+        <div class="legend" id="legend">
+            <div class="legend-head" onclick="document.getElementById('legend').classList.toggle('collapsed')">
+                <span>🗺️ 공간 심리 쾌적도 범례</span><i class="fa-solid fa-chevron-down" style="font-size:0.7rem"></i>
+            </div>
+            <div class="legend-body">
+                <div class="legend-item"><div class="legend-color" style="background: #4a7c59;"></div><span>추천 경로</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #9e9e9e;"></div><span>다른 후보 경로 (눌러서 선택)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #78909c; height: 3px;"></div><span>도보 구간 (대중교통)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: rgba(67,160,71,0.5); border: 2px solid #2e7d32; border-radius: 50%;"></div><span>녹지·공원 구간</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: rgba(229,57,53,0.4); border: 2px solid #c62828; border-radius: 50%;"></div><span>혼잡·소음 주의 구간</span></div>
+                <div style="font-size:0.68rem;color:#78909c;margin-top:4px">원은 경로 탐색 후 표시돼요</div>
+            </div>
         </div>
     </div>
 </div>
@@ -276,9 +287,9 @@
  * ===================================================================== */
 const CONFIG = {
     // 카카오 개발자센터 > 내 애플리케이션 > 앱 키 > "JavaScript 키"  (지도 + 장소검색)
-    KAKAO_JS_KEY: "700e11ff0146ad943348316226e816f2",
+    KAKAO_JS_KEY: "2052391178a857d638ea7625340c6da1",
     // 카카오 개발자센터 > 앱 키 > "REST API 키"  (자동차 길찾기 - 카카오모빌리티)
-    KAKAO_REST_KEY: "e5f83f30b1b3011a01ad4137634d35ac",
+    KAKAO_REST_KEY: "c81272f1e179dd9d3789ba3f4615c3a8",
     // ODsay LAB(lab.odsay.com) 에서 발급받은 "Web 키"  (대중교통 길찾기)
     ODSAY_KEY: "dqB+ZOdAw7ApS6ZIZ9YZyQ",
     // 보행·자전거 길찾기 서버 (OpenStreetMap 기반 무료 OSRM, 키 불필요)
@@ -317,8 +328,8 @@ function showMapError() {
     el.style.display = 'flex';
     el.innerHTML = `<div><i class="fa-solid fa-triangle-exclamation" style="font-size:2rem;color:#fb8c00"></i><br>
         카카오 지도를 불러오지 못했습니다.<br>
-        카카오 개발자센터 → 내 애플리케이션 → <b>플랫폼 → Web</b>에<br>
-        <b>${location.origin}</b> 이 등록되어 있는지,<br>JavaScript 키가 맞는지 확인해 주세요.</div>`;
+        카카오 개발자센터 → 앱 → <b>플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인</b>에<br>
+        <b>${location.origin}</b> 이 등록되어 있는지,<br><b>카카오맵 사용 설정</b>이 ON인지 확인해 주세요.</div>`;
 }
 
 function initMap() {
@@ -336,6 +347,10 @@ function initMap() {
     document.getElementById('end-keyword').value = confirmedText.end = '경복궁';
 
     kakao.maps.event.addListener(map, 'click', onMapClick);
+
+    // 처음 열 때 출발지·도착지가 다 보이게 + 창 크기 바뀌면 지도 다시 맞추기
+    setTimeout(() => { map.relayout(); fitPoints(); }, 100);
+    window.addEventListener('resize', () => { clearTimeout(window.__rz); window.__rz = setTimeout(() => map.relayout(), 150); });
 
     // 엔터키로 검색 / 입력을 바꾸면 "미확정" 표시
     ['start', 'end'].forEach(t => {
@@ -898,18 +913,18 @@ function drawResult(fitBounds) {
     // 환경 표시: 녹지(초록) / 혼잡(빨강)
     const drawn = new Set();
     (best.envSpots || []).forEach(s => {
-        const park = s.park.items[0];
-        if (park && !drawn.has(park.id)) {
+        s.park.items.slice(0, 2).forEach(park => {
+            if (drawn.has(park.id)) return;
             drawn.add(park.id);
             envOverlays.push(new kakao.maps.Circle({
-                map, center: new kakao.maps.LatLng(park.y, park.x), radius: 120,
-                strokeWeight: 1, strokeColor: '#43a047', strokeOpacity: 0.9, fillColor: '#43a047', fillOpacity: 0.3, zIndex: 2
+                map, center: new kakao.maps.LatLng(park.y, park.x), radius: 110,
+                strokeWeight: 2, strokeColor: '#2e7d32', strokeOpacity: 0.95, fillColor: '#43a047', fillOpacity: 0.45, zIndex: 2
             }));
-        }
+        });
         if (s.busy >= 35) {
             envOverlays.push(new kakao.maps.Circle({
                 map, center: s.pt, radius: 150,
-                strokeWeight: 1, strokeColor: '#e53935', strokeOpacity: 0.9, fillColor: '#e53935', fillOpacity: 0.25, zIndex: 2
+                strokeWeight: 2, strokeColor: '#c62828', strokeOpacity: 0.95, fillColor: '#e53935', fillOpacity: 0.3, zIndex: 2
             }));
         }
     });
